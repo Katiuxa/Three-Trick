@@ -1,0 +1,35 @@
+{
+  "appId": "com.metamovidas.tritrick",
+  "appName": "Three Trick",
+  "webDir": "dist",
+  "backgroundColor": "#0e1a12",
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#0e1a12",
+    "webContentsDebuggingEnabled": false,
+    "appendUserAgent": "TriTrickAndroid/1.0",
+    "adjustMarginsForEdgeToEdge": "disable"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 700,
+      "launchAutoHide": true,
+      "backgroundColor": "#0e1a12",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "DARK",
+      "backgroundColor": "#00000000"
+    },
+    "Keyboard": {
+      "resize": "body",
+      "resizeOnFullScreen": true,
+      "style": "DARK"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="ring" x1="20" y1="8" x2="100" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffe9a0"/>
+      <stop offset="50%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#8a6a18"/>
+    </linearGradient>
+    <linearGradient id="well" x1="40" y1="20" x2="80" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3a3532"/>
+      <stop offset="100%" stop-color="#1a1816"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="57" fill="url(#ring)"/>
+  <circle cx="60" cy="60" r="50" fill="url(#well)"/>
+  <rect x="18" y="44" width="84" height="32" rx="4" fill="#d6d3d1"/>
+  <rect x="22" y="48" width="22" height="24" rx="3" fill="#fff" stroke="#44403c" stroke-width="1.5"/>
+  <rect x="49" y="48" width="22" height="24" rx="3" fill="#fff" stroke="#44403c" stroke-width="1.5"/>
+  <rect x="76" y="48" width="22" height="24" rx="3" fill="#fff" stroke="#44403c" stroke-width="1.5"/>
+  <text x="33" y="66" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#1c1917">1</text>
+  <text x="60" y="66" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#1c1917">2</text>
+  <text x="87" y="66" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#1c1917">3</text>
+</svg>

@@ -1,0 +1,8 @@
+[build]
+  command = "node scripts/prepare-www.cjs && npm run build -- --base /"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

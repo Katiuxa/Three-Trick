@@ -1,0 +1,6 @@
+GUARDA ESTE ARCHIVO Y tritrick-upload.jks EN UN SITIO SEGURO.
+Sin esta clave no podrás actualizar la app en Google Play.
+
+Alias: tritrick
+Contraseña: TriTrickMetaUpload2026
+Paquete: com.metamovidas.tritrick
