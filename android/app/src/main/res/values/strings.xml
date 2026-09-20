@@ -4,4 +4,7 @@
     <string name="title_activity_main">Three Trick</string>
     <string name="package_name">com.metamovidas.tritrick</string>
     <string name="custom_url_scheme">com.metamovidas.tritrick</string>
+    <string name="admob_app_id">ca-app-pub-8973581015975783~6973295934</string>
+    <string name="admob_banner_id">ca-app-pub-8973581015975783/6841811292</string>
+    <string name="admob_interstitial_id">ca-app-pub-8973581015975783/5747844171</string>
 </resources>

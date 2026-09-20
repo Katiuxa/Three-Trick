@@ -19,18 +19,33 @@ function write(file, buf) {
   console.log(path.relative(ROOT, file));
 }
 
+function logoInner() {
+  return ICON_SVG.replace(/<svg[^>]*>/, "").replace("</svg>", "");
+}
+
 function iconAt(size) {
-  const inner = ICON_SVG.replace(/<svg[^>]*>/, "").replace("</svg>", "");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 1024 1024">${inner}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 1024 1024">${logoInner()}</svg>`;
   return pngFromSvg(svg, size);
 }
 
+function logoInset(size, fraction) {
+  const logo = Math.round(size * fraction);
+  const x = (size - logo) / 2;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <svg x="${x}" y="${x}" width="${logo}" height="${logo}" viewBox="0 0 1024 1024">${logoInner()}</svg>
+  </svg>`;
+  return new Resvg(svg, {
+    fitTo: { mode: "width", value: size },
+    background: "rgba(0,0,0,0)"
+  }).render().asPng();
+}
+
 function splash(w, h) {
-  const size = Math.round(Math.min(w, h) * 0.42);
+  const size = Math.round(Math.min(w, h) * 0.36);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
     <rect width="${w}" height="${h}" fill="#0e1a12"/>
-    <g transform="translate(${(w - size) / 2} ${(h - size) / 2 - 20}) scale(${size / 1024})">
-      ${ICON_SVG.replace(/<svg[^>]*>/, "").replace("</svg>", "")}
+    <g transform="translate(${(w - size) / 2} ${(h - size) / 2}) scale(${size / 1024})">
+      ${logoInner()}
     </g>
   </svg>`;
   return pngFromSvg(svg, w);
@@ -38,7 +53,6 @@ function splash(w, h) {
 
 function featureGraphic() {
   const w = 1024, h = 500;
-  // Flat splash-style banner without nested filter transforms (resvg can panic on those).
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
     <rect width="${w}" height="${h}" fill="#0e1a12"/>
     <circle cx="210" cy="250" r="150" fill="none" stroke="#e0c36a" stroke-width="10"/>
@@ -54,9 +68,10 @@ function featureGraphic() {
 
 function main() {
   write(path.join(RES, "icon.png"), iconAt(1024));
-  write(path.join(RES, "icon-foreground.png"), iconAt(1024));
+  write(path.join(RES, "icon-foreground.png"), logoInset(1024, 0.62));
   write(path.join(RES, "splash.png"), splash(1242, 2436));
   write(path.join(STORE, "icon-512.png"), iconAt(512));
+  write(path.join(STORE, "icon-foreground-preview.png"), logoInset(512, 0.62));
   write(path.join(STORE, "feature-graphic.png"), featureGraphic());
 }
 

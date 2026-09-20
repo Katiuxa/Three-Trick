@@ -52,6 +52,10 @@ const gw = process.platform === "win32" ? "gradlew.bat" : "./gradlew";
 run(gw, ["assembleRelease"], ANDROID);
 if (wantAab) run(gw, ["bundleRelease"], ANDROID);
 
+const APKS = path.join("C:", "Users", "carlo", "Desktop", "Proyectos", "Android", "APKs");
+const PLAY = path.join("C:", "Users", "carlo", "Desktop", "Proyectos", "Android", "PlayStore", "ThreeTrick");
+const PLAY_DESKTOP = path.join("C:", "Users", "carlo", "Desktop", "Play Store");
+
 fs.mkdirSync(OUT, { recursive: true });
 copyIf(
   path.join(ANDROID, "app", "build", "outputs", "apk", "release", "app-release.apk"),
@@ -60,5 +64,21 @@ copyIf(
 copyIf(
   path.join(ANDROID, "app", "build", "outputs", "bundle", "release", "app-release.aab"),
   path.join(OUT, `ThreeTrick-${VER}.aab`)
+);
+copyIf(
+  path.join(OUT, `ThreeTrick-${VER}.apk`),
+  path.join(APKS, `ThreeTrick-${VER}-con-publicidad.apk`)
+);
+copyIf(
+  path.join(OUT, `ThreeTrick-${VER}.aab`),
+  path.join(PLAY, `ThreeTrick-${VER}.aab`)
+);
+copyIf(
+  path.join(OUT, `ThreeTrick-${VER}.apk`),
+  path.join(PLAY_DESKTOP, `ThreeTrick-${VER}-con-publicidad.apk`)
+);
+copyIf(
+  path.join(OUT, `ThreeTrick-${VER}.aab`),
+  path.join(PLAY_DESKTOP, `ThreeTrick-${VER}.aab`)
 );
 console.log("Listo en " + OUT + " (v" + VER + ")");

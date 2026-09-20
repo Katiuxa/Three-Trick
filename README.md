@@ -1,13 +1,25 @@
 # Three-Trick
 
-Puzle web (Vite + React) y APK Capacitor.
+Puzle Three Trick.
 
-**Jugar:** https://katiuxa.github.io/Three-Trick/
+## Web
 
-GitHub Pages construye `npm ci && npx vite build` y publica `dist`.
+https://katiuxa.github.io/Three-Trick/
+
+Fuentes en `src/`. GitHub Pages las compila con Vite.
 
 ```bash
 npm ci
 npm run dev
+```
+
+## Android
+
+Capacitor en `android/`. Versión **1.0.24**.
+
+```bash
+npm ci
 npm run apk
 ```
+
+Keystore de Play Store fuera de git.

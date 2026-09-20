@@ -18,6 +18,28 @@ const VERSION_CODE = Number(PKG_JSON.androidVersionCode) || (() => {
   return Math.max(1, (parts[0] || 0) * 10000 + (parts[1] || 0) * 100 + (parts[2] || 0));
 })();
 
+function adsIdsFromConfig() {
+  const paths = [
+    path.join(ROOT, "public", "js", "ads-config.js"),
+    path.join(ROOT, "dist", "js", "ads-config.js"),
+    path.join(ROOT, "www", "js", "ads-config.js")
+  ];
+  let s = "";
+  for (const p of paths) {
+    if (fs.existsSync(p)) {
+      s = fs.readFileSync(p, "utf8");
+      break;
+    }
+  }
+  const appId = ((s.match(/appId:\s*"([^"]+)"/) || [])[1] || "").trim();
+  const bannerId = ((s.match(/bannerId:\s*"([^"]+)"/) || [])[1] || "").trim();
+  const ready = appId.indexOf("~") !== -1
+    && appId.indexOf("PEGA") === -1
+    && bannerId.indexOf("/") !== -1
+    && bannerId.indexOf("PEGA") === -1;
+  return { appId, bannerId, ready };
+}
+
 function write(file, text) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, text);
@@ -101,15 +123,25 @@ android {`
   }
   s = s.replace(/versionCode \d+/, "versionCode " + VERSION_CODE);
   s = s.replace(/versionName "[^"]+"/, 'versionName "' + VERSION_NAME + '"');
+  if (!s.includes("play-services-ads")) {
+    s = s.replace(
+      "implementation project(':capacitor-android')",
+      "implementation project(':capacitor-android')\n    implementation \"com.google.android.gms:play-services-ads:$playServicesAdsVersion\""
+    );
+  }
   fs.writeFileSync(appGradle, s);
-  console.log("edit android/app/build.gradle");
+  console.log("edit android/app/build.gradle (" + VERSION_NAME + " / " + VERSION_CODE + ")");
 }
 
 function patchManifest() {
+  const ads = adsIdsFromConfig();
   write(path.join(SRC, "AndroidManifest.xml"), `<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
 
     <uses-feature android:name="android.hardware.touchscreen" android:required="true" />
 
@@ -126,11 +158,18 @@ function patchManifest() {
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:largeHeap="true"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false">
 
+        ${ads.ready ? `<!-- AdMob App ID (strings.xml → admob_app_id). Must use "~", not "/". -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_app_id" />
+` : `<!-- AdMob APPLICATION_ID se añade al pegar los IDs reales en ads-config.js -->
+`}
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
@@ -158,6 +197,22 @@ function patchManifest() {
     </application>
 </manifest>
 `);
+  write(path.join(SRC, "res", "xml", "network_security_config.xml"), `<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">googleads.g.doubleclick.net</domain>
+        <domain includeSubdomains="true">googlesyndication.com</domain>
+        <domain includeSubdomains="true">googleadservices.com</domain>
+        <domain includeSubdomains="true">googleapis.com</domain>
+        <domain includeSubdomains="true">gstatic.com</domain>
+    </domain-config>
+</network-security-config>
+`);
 }
 
 function patchStrings() {
@@ -168,6 +223,19 @@ function patchStrings() {
   s = s.replace(/<string name="title_activity_main">[^<]+<\/string>/, `<string name="title_activity_main">${APP_NAME}</string>`);
   s = s.replace(/<string name="package_name">[^<]+<\/string>/, `<string name="package_name">${PKG}</string>`);
   s = s.replace(/<string name="custom_url_scheme">[^<]+<\/string>/, `<string name="custom_url_scheme">${PKG}</string>`);
+  const ads = adsIdsFromConfig();
+  const appId = ads.ready ? ads.appId : "PEGA_AQUI_EL_APP_ID_DE_ESTE_JUEGO";
+  const bannerId = ads.ready ? ads.bannerId : "PEGA_AQUI_EL_BANNER_ID_DE_ESTE_JUEGO";
+  if (/<string name="admob_app_id">/.test(s)) {
+    s = s.replace(/<string name="admob_app_id">[^<]*<\/string>/, `<string name="admob_app_id">${appId}</string>`);
+  } else {
+    s = s.replace("</resources>", `    <string name="admob_app_id">${appId}</string>\n</resources>`);
+  }
+  if (/<string name="admob_banner_id">/.test(s)) {
+    s = s.replace(/<string name="admob_banner_id">[^<]*<\/string>/, `<string name="admob_banner_id">${bannerId}</string>`);
+  } else {
+    s = s.replace("</resources>", `    <string name="admob_banner_id">${bannerId}</string>\n</resources>`);
+  }
   fs.writeFileSync(file, s);
 }
 
@@ -212,33 +280,12 @@ function patchStyles() {
 
 function patchMainActivity() {
   const dir = path.join(SRC, "java", "com", "metamovidas", "tritrick");
-  write(path.join(dir, "MainActivity.java"), `package com.metamovidas.tritrick;
-
-import android.os.Bundle;
-import android.view.View;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
-import com.getcapacitor.BridgeActivity;
-
-public class MainActivity extends BridgeActivity {
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        final View root = findViewById(android.R.id.content);
-        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
-            Insets nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
-            Insets cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout());
-            int bottom = Math.max(nav.bottom, cutout.bottom);
-            v.setPadding(0, 0, 0, bottom);
-            return insets;
-        });
-        ViewCompat.requestApplyInsets(root);
-    }
-}
-`);
+  const file = path.join(dir, "MainActivity.java");
+  if (fs.existsSync(file) && /AdView|AdsManager/.test(fs.readFileSync(file, "utf8"))) {
+    console.log("keep MainActivity.java (native banner below WebView)");
+    return;
+  }
+  console.warn("MainActivity.java missing native banner — leaving as-is");
 }
 
 function resizePng(src, dest, size) {
@@ -254,27 +301,37 @@ function resizePng(src, dest, size) {
 }
 
 function copyIcons() {
-  const pngIcon = path.join(ROOT, "public", "icon.png");
-  // Prefer SVG logo (felt green). Ignore old red PNG if present.
-  const forceSvg = true;
-  const svg = fs.readFileSync(path.join(ROOT, "public", "favicon.svg"), "utf8");
   const { Resvg } = require("@resvg/resvg-js");
-  function rasterSvg(size) {
-    const inner = svg.replace(/<svg[^>]*>/, "").replace("</svg>", "");
-    const out = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 1024 1024">${inner}</svg>`;
+  const svg = fs.readFileSync(path.join(ROOT, "public", "favicon.svg"), "utf8");
+  const logoInner = svg.replace(/<svg[^>]*>/, "").replace("</svg>", "");
+
+  function rasterFull(size) {
+    const out = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 1024 1024">${logoInner}</svg>`;
     return new Resvg(out, { fitTo: { mode: "width", value: size } }).render().asPng();
   }
-  function raster(size, dest) {
-    if (!forceSvg && fs.existsSync(pngIcon)) resizePng(pngIcon, dest, size);
-    else fs.writeFileSync(dest, rasterSvg(size));
+
+  // Inset the mark on a transparent canvas so Android's squircle/circle
+  // mask never clips the gold ring into a square (same approach as 8 Damas).
+  function rasterInset(canvasSize, fraction) {
+    const logo = Math.round(canvasSize * fraction);
+    const x = (canvasSize - logo) / 2;
+    const out = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasSize}" height="${canvasSize}" viewBox="0 0 ${canvasSize} ${canvasSize}">
+      <svg x="${x}" y="${x}" width="${logo}" height="${logo}" viewBox="0 0 1024 1024">${logoInner}</svg>
+    </svg>`;
+    return new Resvg(out, {
+      fitTo: { mode: "width", value: canvasSize },
+      background: "rgba(0,0,0,0)"
+    }).render().asPng();
   }
+
   const dens = { "mipmap-mdpi": 48, "mipmap-hdpi": 72, "mipmap-xhdpi": 96, "mipmap-xxhdpi": 144, "mipmap-xxxhdpi": 192 };
+  const fgDens = { "mipmap-mdpi": 108, "mipmap-hdpi": 162, "mipmap-xhdpi": 216, "mipmap-xxhdpi": 324, "mipmap-xxxhdpi": 432 };
   for (const [folder, size] of Object.entries(dens)) {
     const dir = path.join(SRC, "res", folder);
     fs.mkdirSync(dir, { recursive: true });
-    raster(size, path.join(dir, "ic_launcher.png"));
-    raster(size, path.join(dir, "ic_launcher_round.png"));
-    raster(Math.round(size * 2.25), path.join(dir, "ic_launcher_foreground.png"));
+    fs.writeFileSync(path.join(dir, "ic_launcher.png"), rasterFull(size));
+    fs.writeFileSync(path.join(dir, "ic_launcher_round.png"), rasterFull(size));
+    fs.writeFileSync(path.join(dir, "ic_launcher_foreground.png"), rasterInset(fgDens[folder], 0.62));
   }
   const anyDpi = path.join(SRC, "res", "mipmap-anydpi-v26");
   fs.mkdirSync(anyDpi, { recursive: true });
@@ -286,17 +343,19 @@ function copyIcons() {
 `;
   fs.writeFileSync(path.join(anyDpi, "ic_launcher.xml"), adaptive);
   fs.writeFileSync(path.join(anyDpi, "ic_launcher_round.xml"), adaptive);
+  const capacitorFg = path.join(SRC, "res", "drawable-v24", "ic_launcher_foreground.xml");
+  if (fs.existsSync(capacitorFg)) fs.unlinkSync(capacitorFg);
   write(path.join(SRC, "res", "values", "ic_launcher_background.xml"), `<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#0E1A12</color>
 </resources>
 `);
   function splashPng(w, h) {
-    const size = Math.round(Math.min(w, h) * 0.42);
+    const size = Math.round(Math.min(w, h) * 0.36);
     const svgSplash = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
       <rect width="${w}" height="${h}" fill="#0e1a12"/>
       <g transform="translate(${(w - size) / 2} ${(h - size) / 2}) scale(${size / 1024})">
-        ${svg.replace(/<svg[^>]*>/, "").replace("</svg>", "")}
+        ${logoInner}
       </g>
     </svg>`;
     return new Resvg(svgSplash, { fitTo: { mode: "width", value: w } }).render().asPng();
@@ -336,6 +395,9 @@ function main() {
     s = s.replace(/minSdkVersion = \d+/, "minSdkVersion = 24");
     s = s.replace(/compileSdkVersion = \d+/, "compileSdkVersion = 35");
     s = s.replace(/targetSdkVersion = \d+/, "targetSdkVersion = 35");
+    if (!s.includes("playServicesAdsVersion")) {
+      s = s.replace("}", "    playServicesAdsVersion = '23.6.0'\n}");
+    }
     fs.writeFileSync(vars, s);
   }
   console.log("Android parcheado");
