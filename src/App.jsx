@@ -15,10 +15,22 @@ import {
 const LANG_KEY = "tritrick.lang";
 
 function detectLang() {
-  const saved = localStorage.getItem(LANG_KEY);
-  if (saved && translations[saved]) return saved;
-  const nav = (navigator.language || "es").slice(0, 2).toLowerCase();
-  return translations[nav] ? nav : "es";
+  try {
+    const saved = localStorage.getItem(LANG_KEY);
+    if (saved && translations[saved]) return saved;
+  } catch {}
+  const list = [];
+  try {
+    if (navigator.languages) list.push(...navigator.languages);
+  } catch {}
+  try {
+    if (navigator.language) list.push(navigator.language);
+  } catch {}
+  for (const raw of list) {
+    const nav = String(raw || "").slice(0, 2).toLowerCase();
+    if (translations[nav]) return nav;
+  }
+  return "es";
 }
 
 export default function App() {
@@ -27,6 +39,7 @@ export default function App() {
   const [langOpen, setLangOpen] = useState(false);
   const [musicMuted, setMusicMutedUi] = useState(isMusicMuted);
   const [sfxMuted, setSfxMutedUi] = useState(isSfxMuted);
+  const [showNoAds, setShowNoAds] = useState(false);
   const t = translations[lang];
 
   useEffect(() => {
@@ -76,6 +89,31 @@ export default function App() {
       silence();
       delete window.TriTrickStartMusic;
       delete window.TriTrickStopMusic;
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncNoAds = () => {
+      try {
+        const native =
+          document.documentElement.classList.contains("is-native") ||
+          document.documentElement.classList.contains("android-app");
+        const ads = window.GameAds;
+        if (!native || !ads || typeof ads.adsOff !== "function") {
+          setShowNoAds(false);
+          return;
+        }
+        setShowNoAds(!ads.adsOff());
+      } catch {
+        setShowNoAds(false);
+      }
+    };
+    syncNoAds();
+    const id = window.setInterval(syncNoAds, 600);
+    window.addEventListener("gameads-change", syncNoAds);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener("gameads-change", syncNoAds);
     };
   }, []);
 
@@ -148,15 +186,27 @@ export default function App() {
               </div>
             )}
           </div>
-          <button
-            type="button"
-            className="page-title-btn"
-            aria-label="Reload"
-            onClick={() => window.location.reload()}
-          >
-            {t.title}
-          </button>
           <div className="header-actions">
+            <button
+              type="button"
+              className="icon-btn lat-ad-noads-fab"
+              hidden={!showNoAds}
+              aria-label={lang === "en" ? "Remove ads for €2" : "Quitar anuncios por 2 €"}
+              title={lang === "en" ? "Remove ads for €2" : "Quitar anuncios por 2 €"}
+              onClick={() => {
+                try {
+                  if (window.GameAds && typeof window.GameAds.buyNoAds === "function") {
+                    window.GameAds.buyNoAds();
+                  }
+                } catch (e) {}
+              }}
+            >
+              <span className="lat-ad-noads-fab__txt">
+                No
+                <br />
+                ads
+              </span>
+            </button>
             <button
               type="button"
               className={`icon-btn sound-btn ${musicMuted ? "is-muted" : ""}`}
@@ -199,6 +249,8 @@ export default function App() {
             </button>
           </div>
         </header>
+
+        <h1 className="page-title">{t.title}</h1>
 
         <PuzzleBoard strings={t} />
 

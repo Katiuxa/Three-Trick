@@ -162,6 +162,11 @@ export default function PuzzleBoard({ strings }) {
       return;
     }
     if (isSolved) playSolved();
+    if (isSolved) {
+      try {
+        if (window.GameAds && typeof window.GameAds.onMatchEnd === "function") window.GameAds.onMatchEnd();
+      } catch (e) {}
+    }
   }, [isSolved]);
 
   const setMode = (next) => {
@@ -502,6 +507,11 @@ export default function PuzzleBoard({ strings }) {
   const onShuffleReachable = () => {
     unlockAudio();
     playShuffle();
+    try {
+      if (window.GameAds && typeof window.GameAds.onMatchStart === "function") {
+        window.GameAds.onMatchStart();
+      }
+    } catch (e) {}
     const base = makeFreshModel();
     const CANDIDATES = 40;
 
@@ -618,7 +628,7 @@ export default function PuzzleBoard({ strings }) {
                   <div className="h-full tile-strip slider-strip">
                     {Array.from({ length: 9 }).map((_, i) => {
                       if (blockedSet.has(i)) {
-                        return <div key={`blk-${i}`} className="tile-covered" />;
+                        return <div key={`blk-${i}`} className="tile-num tile-covered" aria-hidden="true" />;
                       }
                       const isWhite = swapped && whiteStart !== null && i >= whiteStart && i < whiteStart + 3;
                       if (isWhite) return <div key={i} className="tile-ghost" />;

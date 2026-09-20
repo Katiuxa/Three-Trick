@@ -119,7 +119,7 @@ function playBgmNote(freq) {
   osc.type = "triangle";
   osc.frequency.setValueAtTime(freq, t);
   g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(0.045, t + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.14, t + 0.03);
   g.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
   osc.connect(g);
   g.connect(bgmGain);
@@ -135,7 +135,7 @@ export function startBgm() {
   const begin = () => {
     if (musicMuted || bgmStarted) return;
     bgmGain = ctx.createGain();
-    bgmGain.gain.value = 0.55;
+    bgmGain.gain.value = 1.0;
     bgmGain.connect(ctx.destination);
     bgmStarted = true;
     bgmStep = 0;

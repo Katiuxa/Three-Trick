@@ -1,0 +1,401 @@
+/**
+ * Freemium ads chrome — reusable across Metamovidas Capacitor games.
+ *
+ * Stack from the physical bottom of the WebView (nav bar is native padding):
+ *   [AdMob banner = --ad-banner-h]
+ *   [Made with ❤️ by Metamovidas = --metamo-h]  — always on, never inside the ad creative
+ *   [game content]
+ *
+ * Host game CSS should keep interactive content above --bottom-chrome.
+ */
+
+html.android-app,
+html.is-native {
+  --ad-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --metamo-h: 0px;
+  --ad-banner-h: 0px;
+  --ads-stack: calc(var(--metamo-h, 0px) + var(--ad-banner-h, 0px));
+  --bottom-chrome: calc(var(--ad-safe-bottom) + var(--ads-stack));
+}
+
+html.android-app.has-ad-banner,
+html.is-native.has-ad-banner {
+  /* Native AdView sits in a gap below the WebView — do not also reserve it in CSS. */
+  --ad-banner-h: 0px;
+}
+
+html.android-app.has-metamo,
+html.is-native.has-metamo {
+  --metamo-h: 1.25rem;
+}
+
+/* Duplicate in-game footers stay off; .lat-metamo is the persistent credit. */
+html.android-app.ads-chrome footer.colophon,
+html.is-native.ads-chrome footer.colophon,
+html.android-app.has-metamo footer.colophon,
+html.is-native.has-metamo footer.colophon,
+html.android-app.ads-chrome .made,
+html.is-native.ads-chrome .made,
+html.android-app.ads-chrome .home-foot,
+html.is-native.ads-chrome .home-foot,
+html.android-app.ads-chrome .play-credit,
+html.is-native.ads-chrome .play-credit,
+html.android-app .boot-colophon,
+html.is-native .boot-colophon {
+  display: none !important;
+}
+
+html.has-admob-native .lat-ad-banner,
+html.android-app .lat-ad-banner,
+html.is-native .lat-ad-banner {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+html.has-admob-native .lat-ad-banner__row,
+html.android-app .lat-ad-banner__row,
+html.is-native .lat-ad-banner__row {
+  display: none !important;
+}
+html.android-app .lat-ad-interstitial,
+html.is-native .lat-ad-interstitial {
+  display: none !important;
+}
+
+.lat-ad-dev-launch {
+  position: static;
+  flex: 0 0 auto;
+  align-self: center;
+  z-index: 1;
+  padding: 0.22rem 0.38rem;
+  border: 1px dashed rgba(232, 204, 106, 0.55);
+  border-radius: 5px;
+  background: rgba(12, 8, 10, 0.55);
+  color: #e8cc6a;
+  font-family: "Cinzel", "EB Garamond", Georgia, serif;
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+.lat-ad-dev-launch[hidden] {
+  display: none !important;
+}
+
+.lat-ad-buy-fab {
+  position: fixed;
+  right: 0.55rem;
+  bottom: calc(var(--ad-safe-bottom, 0px) + var(--ads-stack, var(--ad-banner-h, 50px)) + 0.35rem);
+  z-index: 230;
+  white-space: nowrap;
+  padding: 0.36rem 0.72rem;
+  border: 1px solid rgba(212, 175, 110, 0.65);
+  border-radius: 7px;
+  background: linear-gradient(180deg, #c9a45a, #8f6a2e);
+  color: #1a0c10;
+  font-family: "Cinzel", "EB Garamond", Georgia, serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+.lat-ad-buy-fab:active {
+  transform: translateY(1px);
+}
+.lat-ad-buy-fab[hidden] {
+  display: none !important;
+}
+
+.lat-metamo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38em;
+  margin: 0;
+  height: 1.25rem;
+  min-height: 1.25rem;
+  padding: 0 0.4rem;
+  box-sizing: border-box;
+  background: transparent;
+  font-family: "EB Garamond", Garamond, serif;
+  font-size: 0.62rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  color: rgba(232, 204, 106, 0.82);
+  pointer-events: none;
+}
+.lat-metamo .heart {
+  color: #c45a5a;
+  font-size: 0.72em;
+}
+.lat-metamo[hidden] {
+  display: none !important;
+}
+
+.lat-ad-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--ad-safe-bottom, 0px);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  padding: 0;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, rgba(42, 18, 24, 0.97), rgba(22, 8, 12, 0.99));
+  border-top: 1px solid rgba(212, 175, 110, 0.35);
+  border-bottom: 1px solid rgba(212, 175, 110, 0.18);
+  font-family: "Cinzel", "EB Garamond", Georgia, serif;
+  color: #f4ead0;
+  pointer-events: auto;
+}
+
+.lat-ad-banner__credit {
+  display: none !important;
+}
+
+.lat-ad-banner__row {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0;
+  height: var(--ad-row-h, 50px);
+  min-height: var(--ad-row-h, 50px);
+  max-height: var(--ad-row-h, 50px);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.lat-ad-banner.is-credit-only .lat-ad-banner__row {
+  display: none !important;
+}
+
+.lat-ad-banner[hidden],
+.lat-ad-interstitial[hidden] {
+  display: none !important;
+}
+
+.lat-ad-banner__slot {
+  /* Anchored adaptive: full remaining width, height from --ad-row-h (50–90 dp typical) */
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.04rem;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(212, 175, 110, 0.08),
+      rgba(212, 175, 110, 0.08) 6px,
+      rgba(255, 255, 255, 0.03) 6px,
+      rgba(255, 255, 255, 0.03) 12px
+    );
+  border: 1px dashed rgba(212, 175, 110, 0.28);
+  cursor: default;
+  box-sizing: border-box;
+}
+
+.lat-ad-banner__label {
+  font-size: 0.52rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.lat-ad-banner__brand {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lat-ad-banner__buy {
+  flex: 0 0 auto;
+  align-self: center;
+  white-space: nowrap;
+  padding: 0.36rem 0.72rem;
+  border: 1px solid rgba(212, 175, 110, 0.65);
+  border-radius: 7px;
+  background: linear-gradient(180deg, #c9a45a, #8f6a2e);
+  color: #1a0c10;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.lat-ad-banner__buy:active {
+  transform: translateY(1px);
+}
+
+/* Buy lives in the header FAB; keep the ad row full-width like a real AdMob adaptive banner */
+html.android-app .lat-ad-banner__buy,
+html.is-native .lat-ad-banner__buy {
+  display: none !important;
+}
+
+.lat-ad-interstitial {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  padding:
+    max(1rem, var(--android-inset-top, 0px))
+    max(0.8rem, var(--android-inset-right, 0px))
+    max(1rem, calc(var(--ad-safe-bottom, 0px) + var(--ad-banner-h, 0px) + 0.4rem))
+    max(0.8rem, var(--android-inset-left, 0px));
+  background: rgba(6, 2, 4, 0.82);
+  box-sizing: border-box;
+}
+
+.lat-ad-interstitial__panel {
+  width: min(22rem, 92vw);
+  padding: 1.1rem 1rem 1.15rem;
+  border-radius: 14px;
+  border: 1px solid rgba(212, 175, 110, 0.4);
+  background:
+    radial-gradient(circle at 30% 0%, rgba(201, 164, 90, 0.18), transparent 55%),
+    linear-gradient(165deg, #3a1a22, #1a0a10 70%);
+  color: #f4ead0;
+  text-align: center;
+  font-family: "Cinzel", "EB Garamond", Georgia, serif;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.lat-ad-interstitial__eyebrow {
+  margin: 0 0 0.65rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.lat-ad-interstitial__creative {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1.35rem 0.8rem;
+  margin-bottom: 0.85rem;
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.04),
+      rgba(255, 255, 255, 0.04) 8px,
+      rgba(212, 175, 110, 0.08) 8px,
+      rgba(212, 175, 110, 0.08) 16px
+    );
+  border: 1px dashed rgba(212, 175, 110, 0.35);
+}
+
+.lat-ad-interstitial__mark {
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  opacity: 0.7;
+}
+
+.lat-ad-interstitial__creative strong {
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+}
+
+.lat-ad-interstitial__creative p {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.lat-ad-interstitial__wait {
+  min-height: 1.2rem;
+  margin: 0 0 0.55rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  opacity: 0.9;
+}
+
+.lat-ad-interstitial__close,
+.lat-ad-interstitial__buy {
+  display: block;
+  width: 100%;
+  margin-top: 0.4rem;
+  min-height: 46px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.lat-ad-interstitial__close {
+  border: 1px solid rgba(244, 234, 208, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4ead0;
+}
+
+.lat-ad-interstitial__close:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.lat-ad-interstitial__buy {
+  border: 1px solid rgba(212, 175, 110, 0.7);
+  background: linear-gradient(180deg, #c9a45a, #8f6a2e);
+  color: #1a0c10;
+}
+
+body.lat-ad-locked {
+  overflow: hidden !important;
+}
+
+/* Header / boot: same circle as sound, offers the 2 € ad-free purchase */
+.lat-ad-noads-fab {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  padding: 0.12rem 0.08rem;
+  font-size: 0.46rem !important;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+  text-transform: uppercase;
+  text-align: center;
+  font-family: "Cinzel", "EB Garamond", Georgia, serif;
+  white-space: normal;
+}
+.lat-ad-noads-fab__txt {
+  display: block;
+  transform: translateY(0.5px);
+}
+.lat-ad-noads-fab[hidden] {
+  display: none !important;
+}
+

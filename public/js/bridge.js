@@ -16,7 +16,7 @@
   }
   if (!isNative()) return;
 
-  document.documentElement.classList.add("is-native");
+    document.documentElement.classList.add("is-native", "android-app");
 
   function plugin(name) {
     var C = cap();
@@ -48,6 +48,7 @@
 
     if (App && App.addListener) {
       App.addListener("backButton", function () {
+        if (window.GameAds && window.GameAds.consumeBack && window.GameAds.consumeBack()) return;
         if (typeof window.TriTrickConsumeBack === "function" && window.TriTrickConsumeBack()) return;
         if (App.exitApp) App.exitApp();
       });
