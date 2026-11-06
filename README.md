@@ -4,9 +4,9 @@ Puzle Three Trick.
 
 ## Web
 
-https://katiuxa.github.io/Three-Trick/
+https://tritrick.vercel.app
 
-Fuentes en `src/`. GitHub Pages las compila con Vite.
+Fuentes en `src/`.
 
 ```bash
 npm ci
