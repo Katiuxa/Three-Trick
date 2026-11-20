@@ -1,6 +1,6 @@
 # Three-Trick
 
-Three Trick puzzle.
+The physical tile puzzle, brought to the screen. Slide a tile, lift it, and drop it until the pieces sit in order from 1 to 9. Web and Android.
 
 ## Web
 
